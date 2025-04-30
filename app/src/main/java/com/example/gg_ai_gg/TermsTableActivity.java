@@ -19,7 +19,7 @@ import java.util.List;
 
 public class TermsTableActivity extends AppCompatActivity {
     private static final String TAG = "TermsTableActivity";
-    private static final String API_KEY = "AIzaSyCowoJp_uDmAiRabJaYfpC3bCjWI8mcvlo"; // Replace with your actual API key
+    private static final String API_KEY = "Điền API Vào đây"; // Replace with your actual API key
 
     private RecyclerView rvTermsTable;
     private TermsAdapter adapter;
