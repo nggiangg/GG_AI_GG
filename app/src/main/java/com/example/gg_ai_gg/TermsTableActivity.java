@@ -19,7 +19,7 @@ import java.util.List;
 
 public class TermsTableActivity extends AppCompatActivity {
     private static final String TAG = "TermsTableActivity";
-    private static final String API_KEY = "//Điền API của bạn vào đây"; // Replace with your actual API key
+    private static final String API_KEY = "AIzaSyCowoJp_uDmAiRabJaYfpC3bCjWI8mcvlo"; // Replace with your actual API key
 
     private RecyclerView rvTermsTable;
     private TermsAdapter adapter;
@@ -50,22 +50,14 @@ public class TermsTableActivity extends AppCompatActivity {
             Toast.makeText(this, "Không tìm thấy file text", Toast.LENGTH_SHORT).show();
             finish();
         }
+        // Initialize views
+        rvTermsTable = findViewById(R.id.rvTermsTable);
 
-        // Set up buttons
-        Button btnExportPdf = findViewById(R.id.btnExportPdf);
-        Button btnExportWord = findViewById(R.id.btnExportWord);
-        Button btnExportExcel = findViewById(R.id.btnExportExcel);
-
-        btnExportPdf.setOnClickListener(v -> {
-            Toast.makeText(this, "Xuất PDF chưa được hỗ trợ", Toast.LENGTH_SHORT).show();
-        });
-
-        btnExportWord.setOnClickListener(v -> {
-            Toast.makeText(this, "Xuất Word chưa được hỗ trợ", Toast.LENGTH_SHORT).show();
-        });
-
-        btnExportExcel.setOnClickListener(v -> {
-            Toast.makeText(this, "Xuất Excel chưa được hỗ trợ", Toast.LENGTH_SHORT).show();
+        // Thêm xử lý cho nút Back
+        Button btnBack = findViewById(R.id.btnback);
+        btnBack.setOnClickListener(v -> {
+            // Quay về trang Main
+            finish();
         });
     }
 

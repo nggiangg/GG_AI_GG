@@ -37,7 +37,8 @@ public class GeminiApiService {
                 "Định dạng phản hồi dưới dạng mảng JSON với các đối tượng chứa: " +
                 "term, field, shortDefinition, detailedDefinition, context, và relatedTerms (dưới dạng mảng). " +
                 "QUAN TRỌNG: Hãy trả lời bằng tiếng Việt cho tất cả các thông tin. " +
-                "Xác định ít nhất 5-10 thuật ngữ quan trọng. Dưới đây là văn bản: \n\n" + text;
+                "Xác định TẤT CẢ các thuật ngữ từ văn bản (tối thiểu 20-30 thuật ngữ nếu có thể). " +
+                "QUAN TRỌNG: Hãy trích xuất đầy đủ và toàn diện. Dưới đây là văn bản: \n\n" + text;
 
         // Execute on background thread
         executor.execute(() -> {
@@ -70,6 +71,10 @@ public class GeminiApiService {
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setDoOutput(true);
+
+//        // Thêm timeout dài hơn
+//        conn.setConnectTimeout(30000); // 30 giây
+//        conn.setReadTimeout(60000);    // 60 giây
 
         // Tạo JSON request body
         org.json.JSONObject body = new org.json.JSONObject();

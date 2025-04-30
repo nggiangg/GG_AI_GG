@@ -1,6 +1,7 @@
 package com.example.gg_ai_gg;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -21,8 +22,14 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import androidx.recyclerview.widget.RecyclerView;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
@@ -30,7 +37,10 @@ public class MainActivity extends AppCompatActivity {
 
     // Define the custom permission as a string
     private static final String READ_MEDIA_DOCUMENTS = "android.permission.READ_MEDIA_DOCUMENTS";
-
+    private RecyclerView rvRecentDocuments;
+    private List<RecentDocument> recentDocuments = new ArrayList<>();
+    private RecentDocumentsAdapter recentDocumentsAdapter;
+    private RecentDocumentsManager documentsManager;
     private final ActivityResultLauncher<Intent> filePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -57,6 +67,39 @@ public class MainActivity extends AppCompatActivity {
         // Set up button click listener
         Button uploadButton = findViewById(R.id.button2);
         uploadButton.setOnClickListener(v -> checkPermissionsAndOpenFilePicker());
+
+        // Khởi tạo DocumentsManager
+        documentsManager = new RecentDocumentsManager(this);
+
+        // Cài đặt RecyclerView
+        rvRecentDocuments = findViewById(R.id.rvRecentDocuments);
+        rvRecentDocuments.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
+
+        // Tải danh sách tài liệu gần đây
+        loadRecentDocuments();
+    }
+    protected void onResume() {
+        super.onResume();
+        // Cập nhật danh sách mỗi khi quay lại màn hình
+        loadRecentDocuments();
+    }
+    private void loadRecentDocuments() {
+        recentDocuments = documentsManager.getRecentDocuments();
+        recentDocumentsAdapter = new RecentDocumentsAdapter(this, recentDocuments, document -> {
+            // Xử lý khi click vào tài liệu
+            if (document.getTextPath() != null) {
+                File textFile = new File(document.getTextPath());
+                if (textFile.exists()) {
+                    // Chuyển đến TermsTableActivity
+                    Intent intent = new Intent(MainActivity.this, TermsTableActivity.class);
+                    intent.putExtra("TEXT_FILE_PATH", document.getTextPath());
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "File tạm không còn tồn tại, vui lòng tải lại tài liệu", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        rvRecentDocuments.setAdapter(recentDocumentsAdapter);
     }
 
     private void checkPermissionsAndOpenFilePicker() {
@@ -97,18 +140,45 @@ public class MainActivity extends AppCompatActivity {
         if (textFilePath != null) {
             File outputFile = new File(textFilePath);
             Toast.makeText(this,
-                    "Đã xử lý xong PDF. File text được lưu tại:\n" + textFilePath,
-                    Toast.LENGTH_LONG).show();
+                    "Đã xử lý xong PDF...",
+                    Toast.LENGTH_SHORT).show();
 
-            // Optionally, you can now continue to the SecondaryActivity
-            // and pass the text file path as an extra
-            Intent intent = new Intent(this, SecondaryActivity.class);
+            // Lưu vào danh sách tài liệu gần đây
+            String fileName = documentsManager.getFileName(pdfUri, this);
+            documentsManager.addDocument(fileName, pdfUri.toString(), textFilePath);
+
+            // Cập nhật giao diện danh sách
+            loadRecentDocuments();
+
+            // Chuyển đến TermsTableActivity
+            Intent intent = new Intent(this, TermsTableActivity.class);
             intent.putExtra("TEXT_FILE_PATH", textFilePath);
             startActivity(intent);
         } else {
             Toast.makeText(this, "Lỗi khi xử lý PDF.", Toast.LENGTH_SHORT).show();
         }
     }
+    // Thêm vào lớp RecentDocumentsManager
+    public String getFileName(Uri uri, Context context) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (android.database.Cursor cursor = context.getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                    if (index >= 0) {
+                        result = cursor.getString(index);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (result == null) {
+            result = uri.getLastPathSegment();
+        }
+        return result;
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
